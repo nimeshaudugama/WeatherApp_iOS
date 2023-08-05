@@ -21,7 +21,7 @@
 /* Begin PBXFileReference section */
 		111C58E22A7A1BB600D85A94 /* WeatherDataStruct.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WeatherDataStruct.swift; path = project02/WeatherDataStruct.swift; sourceTree = SOURCE_ROOT; };
 		112C386E2A78DE6800FF065F /* CitiesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CitiesViewController.swift; sourceTree = "<group>"; };
-		112C38702A78FC9900FF065F /* location.gpx */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = location.gpx; path = project02/location.gpx; sourceTree = "<group>"; };
+		112C38702A78FC9900FF065F /* location.gpx */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = location.gpx; sourceTree = "<group>"; };
 		115BE2EA2A7B79C100DB3C83 /* CustomTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTableViewCell.swift; sourceTree = "<group>"; };
 		119C68B82A71978F003DBCB1 /* project02.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = project02.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		119C68BB2A71978F003DBCB1 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -47,7 +47,6 @@
 		119C68AF2A71978F003DBCB1 = {
 			isa = PBXGroup;
 			children = (
-				112C38702A78FC9900FF065F /* location.gpx */,
 				119C68BA2A71978F003DBCB1 /* project02 */,
 				119C68B92A71978F003DBCB1 /* Products */,
 			);
@@ -74,6 +73,7 @@
 				119C68C92A719790003DBCB1 /* Info.plist */,
 				112C386E2A78DE6800FF065F /* CitiesViewController.swift */,
 				115BE2EA2A7B79C100DB3C83 /* CustomTableViewCell.swift */,
+				112C38702A78FC9900FF065F /* location.gpx */,
 			);
 			path = project02;
 			sourceTree = "<group>";

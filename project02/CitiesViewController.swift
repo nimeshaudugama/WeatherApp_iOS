@@ -15,25 +15,25 @@ protocol CitiesViewControllerDelegate: AnyObject {
 
 
 class CitiesViewController: UIViewController{
-
+    
     @IBOutlet weak var tableView: UITableView!
     
-
     
     
-   
+    
+    
     
     weak var delegate: CitiesViewControllerDelegate?
     var weatherSymbolProvider: WeatherSymbolProvider?
     
     private var goBack = "goToBack"
     
-   
     
-
-       var weatherDataArray: [WeatherData] = []
+    
+    
+    var weatherDataArray: [WeatherData] = []
     var weatherDataUpdated: (([WeatherData]) -> Void)?
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -41,21 +41,30 @@ class CitiesViewController: UIViewController{
         tableView.dataSource = self
         
         
-}
+    }
     
-   
-
+    
+    
     
     
     @IBAction func onBackButtonTapped(_ sender: UIButton) {
-        performSegue(withIdentifier: goBack, sender: self)
+        delegate?.citiesViewControllerDidUpdateData(weatherDataArray)
         weatherDataUpdated?(weatherDataArray)
-          delegate?.citiesViewControllerDidUpdateData(weatherDataArray)
-          self.navigationController?.popViewController(animated: true)
+        
+        // Reload the table view with the updated data
         tableView.reloadData()
         
-      }
-  }
+        // Perform the segue to go back to the previous screen
+        performSegue(withIdentifier: goBack, sender: self)
+        
+    }
+    
+    
+   
+}
+
+
+
 
   extension CitiesViewController: UITableViewDelegate, UITableViewDataSource {
       func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {

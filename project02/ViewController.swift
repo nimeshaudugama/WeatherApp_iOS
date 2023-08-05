@@ -14,7 +14,7 @@ protocol WeatherSymbolProvider {
 
 
 
-class ViewController: UIViewController,CLLocationManagerDelegate,WeatherSymbolProvider {
+class ViewController: UIViewController,CLLocationManagerDelegate,WeatherSymbolProvider,UITextFieldDelegate {
     
     @IBOutlet weak var locationButton: UIButton!
     
@@ -46,15 +46,33 @@ class ViewController: UIViewController,CLLocationManagerDelegate,WeatherSymbolPr
     var weatherData: WeatherData?
 
 
+   
+    
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
+       
         locationManager = CLLocationManager()
         locationManager.delegate = self
         
-        // Set the initial state of the segmented control
+       
         temperatureToggleSwitch.selectedSegmentIndex = 0
+        searchTextField.delegate = self
+        
+        
     }
+    
+    
+
+
+
+
+
+
+
+    
+    
     
     override func viewDidAppear(_ animated: Bool) {
             super.viewDidAppear(animated)
@@ -72,12 +90,15 @@ class ViewController: UIViewController,CLLocationManagerDelegate,WeatherSymbolPr
                 case .notDetermined:
                     locationManager.requestWhenInUseAuthorization()
                 case .denied, .restricted:
-                    // Handle the case where location services are not available or denied by the user
+                   
                     locationButton.isEnabled = false
                 @unknown default:
                     break
                 }
     }
+    
+    
+    
     
     func startUpdatingLocation() {
             locationManager.startUpdatingLocation()
@@ -87,31 +108,59 @@ class ViewController: UIViewController,CLLocationManagerDelegate,WeatherSymbolPr
     @IBAction func onLocationTapped(_ sender: UIButton) {
         
         checkLocationAuthorization()
-               if CLLocationManager.authorizationStatus() == .authorizedWhenInUse || CLLocationManager.authorizationStatus() == .authorizedAlways {
-                    startUpdatingLocation()
-                }
+//               if CLLocationManager.authorizationStatus() == .authorizedWhenInUse || CLLocationManager.authorizationStatus() == .authorizedAlways {
+//                    startUpdatingLocation()
+//                }
+        
+        
+        
+        let status = locationManager.authorizationStatus
+           switch status {
+           case .authorizedWhenInUse, .authorizedAlways:
+               // Location services are authorized, enable the location button
+               locationButton.isEnabled = true
+               startUpdatingLocation()
+           case .notDetermined:
+               locationManager.requestWhenInUseAuthorization()
+           case .denied, .restricted:
+               
+               locationButton.isEnabled = false
+           @unknown default:
+               break
+           }
     }
     
     
+
     func weatherConditionSymbol(for code: Int) -> UIImage? {
+        // Define the colors you want to use
+        let colors: [UIColor] = [.white , .systemYellow]
+
+        // Create a symbol configuration with the desired colors
+        let config = UIImage.SymbolConfiguration(paletteColors: colors)
+
         switch code {
         case 1003: // Partly Cloudy
-            return UIImage(systemName: "cloud.sun.fill")
+            // Set the preferred symbol configuration for the specific SF Symbol
+            return UIImage(systemName: "cloud.sun.fill")?.withConfiguration(config)
         case 1009: // Overcast
-            return UIImage(systemName: "smoke.fill")
+            return UIImage(systemName: "smoke.fill")?.withConfiguration(config)
         case 1063, 1180, 1183, 1186, 1189, 1192, 1195, 1240, 1243, 1246: // Rain
-            return UIImage(systemName: "cloud.rain.fill")
-        case 1030: //Mist
-            return UIImage(systemName: "aqi.medium")
-        case 1135: //Fog
-            return UIImage(systemName: "humidity")
-        case 1000: //Sunny
-            return UIImage(systemName: "sun.max.fill")
+            return UIImage(systemName: "cloud.rain.fill")?.withConfiguration(config)
+        case 1030: // Mist
+            return UIImage(systemName: "aqi.medium")?.withConfiguration(config)
+        case 1135: // Fog
+            return UIImage(systemName: "humidity")?.withConfiguration(config)
+        case 1000: // Sunny
+            return UIImage(systemName: "sun.max.fill")?.withConfiguration(config)
         // Add more cases for other weather conditions
         default:
             return nil
         }
     }
+
+      
+
 
     
     
@@ -178,15 +227,29 @@ class ViewController: UIViewController,CLLocationManagerDelegate,WeatherSymbolPr
     @IBAction func onTempratureToggle(_ sender: UISegmentedControl) {
     
     
+//        isCelsiusSelected = (sender.selectedSegmentIndex == 0)
+//
+//                if let weatherData = weatherData {
+//                    let temperature = isCelsiusSelected ? weatherData.current.temp_c : weatherData.current.temp_f
+//                    let temperatureString = String(format: "%.1f", temperature)
+//                    let unitSymbol = isCelsiusSelected ? "°C" : "°F"
+//                    labelWeather.text = "\(temperatureString) \(unitSymbol)"
+//                }
+//            }
+        
         isCelsiusSelected = (sender.selectedSegmentIndex == 0)
 
-                if let weatherData = weatherData {
-                    let temperature = isCelsiusSelected ? weatherData.current.temp_c : weatherData.current.temp_f
-                    let temperatureString = String(format: "%.1f", temperature)
-                    let unitSymbol = isCelsiusSelected ? "°C" : "°F"
-                    labelWeather.text = "\(temperatureString) \(unitSymbol)"
-                }
-            }
+          if let weatherData = weatherData {
+              let temperature = isCelsiusSelected ? weatherData.current.temp_c : weatherData.current.temp_f
+              let temperatureString = String(format: "%.1f", temperature)
+              let unitSymbol = isCelsiusSelected ? "°C" : "°F"
+              
+              // Perform UI updates on the main thread
+              DispatchQueue.main.async {
+                  self.labelWeather.text = "\(temperatureString) \(unitSymbol)"
+              }
+          }
+      }
     
    
     
@@ -200,7 +263,17 @@ class ViewController: UIViewController,CLLocationManagerDelegate,WeatherSymbolPr
         
         
         
-        performSegue(withIdentifier: "goToCities", sender: self)
+       // performSegue(withIdentifier: "goToCities", sender: self)
+        let storyboard = UIStoryboard(name: "Main", bundle: nil) // Replace "Main" with your storyboard name if needed
+           if let citiesVC = storyboard.instantiateViewController(withIdentifier: "CitiesViewController") as? CitiesViewController {
+               citiesVC.delegate = self
+               citiesVC.weatherDataArray = weatherDataArray
+               citiesVC.weatherSymbolProvider = self
+               
+               // Push the CitiesViewController onto the navigation stack
+               self.navigationController?.pushViewController(citiesVC, animated: true)
+           }
+         
         
     }
 //
@@ -215,22 +288,37 @@ class ViewController: UIViewController,CLLocationManagerDelegate,WeatherSymbolPr
                 }
             }
         }
+    
+    
+    
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        textField.resignFirstResponder() // Hide the keyboard
+        // Call your search function here
+        performSearch()
+        return true
+    }
+
 
     
     @IBAction func onSearchButtonTapped(_ sender: UIButton) {
+        performSearch()
         
+        searchTextField.text = ""
         
-       
-        
+    }
+    
+    
+        func performSearch (){
         
         if let location = searchTextField.text, !location.isEmpty {
+            locationLabel.text=location
             
+//            let newCity = WeatherData(location: Location(name: location, region: "", country: "", lat: 0, lon: 0, tz_id: "", localtime_epoch: 0, localtime: ""), current: Current(temp_c: 1, temp_f: 0, condition: WeatherCondition(text: "", icon: "",code: 0))) // You might need to set other properties based on your data structure
             
-            let newCity = WeatherData(location: Location(name: location, region: "", country: "", lat: 0, lon: 0, tz_id: "", localtime_epoch: 0, localtime: ""), current: Current(temp_c: 0, temp_f: 0, condition: WeatherCondition(text: "", icon: "",code: 0))) // You might need to set other properties based on your data structure
-            weatherDataArray.append(newCity)
-            searchTextField.text = ""
-            
-            // Start geocoding to get latitude and longitude for the entered location
+//            let newCity = WeatherData(location: Location(name: location, region: "", country: "", lat: 0, lon: 0, tz_id: "", localtime_epoch: 0, localtime: ""), current: nil)
+//            weatherDataArray.append(newCity)
+//            searchTextField.text = ""
+    
             let geocoder = CLGeocoder()
             geocoder.geocodeAddressString(location) { [weak self] (placemarks, error) in
                 guard let self = self else { return }
@@ -240,17 +328,23 @@ class ViewController: UIViewController,CLLocationManagerDelegate,WeatherSymbolPr
                     return
                 }
                 
-                // Use the first found placemark (location) to fetch weather data
+               
                 if let placemark = placemarks?.first, let latitude = placemark.location?.coordinate.latitude, let longitude = placemark.location?.coordinate.longitude {
                     self.fetchWeatherData(latitude: latitude, longitude: longitude)
+                    
                 } else {
-                    // Handle the case when no location is found for the entered text
+                 
                     print("No location found for the entered text")
-                }
+                    
+                    if let clError = error as? CLError, clError.code == .geocodeFoundNoResult {
+                            let alertController = UIAlertController(title: "Error", message: "No location found for the entered text.", preferredStyle: .alert)
+                            let okAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+                            alertController.addAction(okAction)
+                            present(alertController, animated: true, completion: nil)
+                    }}
             }
         } else {
-            // Show an alert to inform the user to enter a location
-            // Handle the case when the search box is empty
+         
         }
     }
     
@@ -259,17 +353,16 @@ class ViewController: UIViewController,CLLocationManagerDelegate,WeatherSymbolPr
     
     
     
-    // Function to make the API call using latitude and longitude
         func fetchWeatherData(latitude: Double, longitude: Double) {
-            // Construct your API URL with latitude and longitude parameters
+            
             let apiKey = "49522dd53ff94e11a7f235942232607"
             let apiUrl = "https://api.weatherapi.com/v1/current.json?key=\(apiKey)&q=\(latitude),\(longitude)"
             
-            // Create a URL object from the apiUrl
+            
                if let url = URL(string: apiUrl) {
-                   // Create a URLSession task to fetch data from the URL
+                  
                    let task = URLSession.shared.dataTask(with: url) { data, response, error in
-                       // Handle any error that occurred during the API call
+                       
                        if let error = error {
                            print("Error fetching weather data: \(error.localizedDescription)")
                            return
@@ -288,6 +381,7 @@ class ViewController: UIViewController,CLLocationManagerDelegate,WeatherSymbolPr
                            let weatherData = try jsonDecoder.decode(WeatherData.self, from: data)
                            self.weatherData = weatherData
                            self.weatherDataArray.append(weatherData)
+                       
                            // Update the temperature label based on the default temperature unit (Celsius by default)
                            self.onTempratureToggle(self.temperatureToggleSwitch)
                            
@@ -341,10 +435,9 @@ class ViewController: UIViewController,CLLocationManagerDelegate,WeatherSymbolPr
 extension ViewController: CitiesViewControllerDelegate {
     func citiesViewControllerDidUpdateData(_ newData: [WeatherData]) {
         weatherDataArray = newData
+        //tableView.reloadData()
         
-        // Reload the table view with the updated data
-        // You might need to set the table view outlet in the storyboard to trigger the reload
-        // For example: tableView.reloadData()
+        
     }
 }
 
